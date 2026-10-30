@@ -1,9 +1,4 @@
+
 {
-  "version": 2,
-  "functions": {
-    "api/gas.js": { "maxDuration": 30 }
-  },
-  "rewrites": [
-    { "source": "/api/gas", "destination": "/api/gas" }
-  ]
+  "version": 2
 }
