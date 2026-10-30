@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PINJAMKU — Sistem Pinjaman</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+:root{--navy:#101b3d;--blue:#4263eb;--bg:#f4f7fc;--ink:#17233f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,Arial;color:var(--ink)}
+.login-wrap{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 15% 15%,#526cf0,transparent 35%),linear-gradient(135deg,#101b3d,#263f83)}
+.login-card{width:min(430px,100%);background:#fff;border-radius:24px;padding:34px;box-shadow:0 25px 70px #07122d66;animation:rise .65s ease}
+.brand-mark{width:54px;height:54px;border-radius:17px;background:linear-gradient(135deg,#4263eb,#7c4dff);display:grid;place-items:center;color:white;font-size:25px}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.app{display:none;min-height:100vh}.sidebar{width:260px;background:var(--navy);color:#dce5ff;position:fixed;inset:0 auto 0 0;padding:22px 15px;z-index:20;transition:.3s;overflow:auto}
+.logo{display:flex;align-items:center;gap:12px;padding:4px 10px 25px;font-weight:800;color:white;font-size:20px}
+.logo i{background:#4263eb;padding:10px;border-radius:13px}.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:#8291bd;padding:14px 12px 7px}
+.nav-link{color:#b8c5e8;border-radius:12px;padding:11px 13px;margin:3px 0;display:flex;gap:12px;align-items:center;cursor:pointer;transition:.2s}
+.nav-link:hover,.nav-link.active{background:#263967;color:white;transform:translateX(4px)}.nav-link i{font-size:18px;width:22px}
+.main{margin-left:260px;padding:25px 30px;transition:.3s}.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:25px}
+.cardx{background:white;border:1px solid #edf0f7;border-radius:18px;padding:20px;box-shadow:0 5px 22px #23345b08;animation:rise .35s ease}
+.stat{display:flex;align-items:center;justify-content:space-between}.stat-icon{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;font-size:21px}
+.stat h3{font-size:25px;font-weight:800;margin:8px 0 0}.muted{color:#8490a8;font-size:13px}.section{display:none}.section.active{display:block;animation:rise .3s ease}
+.table thead th{font-size:12px;color:#78849d;text-transform:uppercase;background:#f8faff;border:0}.table td{vertical-align:middle;font-size:13px}.btn-primary{background:#4263eb;border-color:#4263eb}.form-control,.form-select{border-radius:10px;padding:10px 12px}.modal-content{border:0;border-radius:18px}.mobile-toggle{display:none}
+.badge-soft{background:#eaf0ff;color:#3556c7;padding:6px 10px;border-radius:30px}.empty{padding:35px;text-align:center;color:#9aa5ba}
+@media(max-width:850px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:none;box-shadow:0 0 0 100vmax #07122d66}.main{margin-left:0;padding:18px}.mobile-toggle{display:inline-flex}.topbar{gap:12px}.topbar h4{font-size:18px}.stat h3{font-size:20px}}
+</style>
+</head>
+<body>
+<div id="loginScreen" class="login-wrap">
+ <div class="login-card">
+  <div class="brand-mark mb-3"><i class="bi bi-wallet2"></i></div>
+  <h3 class="fw-bold mb-1">PINJAMKU</h3><p class="text-secondary mb-4">Sistem Informasi Pinjaman & Angsuran</p>
+  <form id="loginForm">
+   <label class="form-label small fw-semibold">ID Pengguna / ID Anggota</label>
+   <input id="username" class="form-control mb-3" autocomplete="username" required placeholder="Masukkan ID pengguna">
+   <label class="form-label small fw-semibold">Password</label>
+   <div class="input-group mb-3"><input id="password" type="password" class="form-control" autocomplete="current-password" required placeholder="Masukkan password"><button class="btn btn-outline-secondary" type="button" onclick="togglePass()"><i class="bi bi-eye"></i></button></div>
+   <button id="loginBtn" class="btn btn-primary w-100 py-2 fw-semibold">Masuk <i class="bi bi-arrow-right ms-1"></i></button>
+  </form>
+  <div class="small text-secondary mt-4">Administrator awal: <b>admin</b> / <b>admin123!</b><br>Segera ganti password setelah login.</div>
+ </div>
+</div>
+<div id="app" class="app">
+ <aside class="sidebar" id="sidebar">
+  <div class="logo"><i class="bi bi-wallet2"></i><span>PINJAMKU</span></div>
+  <div class="nav-label">Menu utama</div>
+  <a class="nav-link active" data-page="dashboard"><i class="bi bi-grid-1x2"></i>Dashboard</a>
+  <a class="nav-link admin-only" data-page="members"><i class="bi bi-people"></i>Data Anggota</a>
+  <a class="nav-link" data-page="loans"><i class="bi bi-cash-stack"></i>Data Peminjam</a>
+  <a class="nav-link" data-page="payments"><i class="bi bi-receipt"></i>Data Angsuran</a>
+  <a class="nav-link" data-page="reports"><i class="bi bi-file-earmark-bar-graph"></i>Laporan</a>
+  <div class="nav-label admin-only">Keuangan</div>
+  <a class="nav-link admin-only" data-page="income"><i class="bi bi-graph-up-arrow"></i>Pemasukan</a>
+  <a class="nav-link admin-only" data-page="expense"><i class="bi bi-graph-down-arrow"></i>Pengeluaran</a>
+  <div class="nav-label">Akun</div>
+  <a class="nav-link" data-page="password"><i class="bi bi-key"></i>Ganti Password</a>
+  <a class="nav-link" onclick="logout()"><i class="bi bi-box-arrow-left"></i>Logout</a>
+  <div class="small text-white-50 mt-5 px-2">PINJAMKU • v1.0</div>
+ </aside>
+ <main class="main">
+  <div class="topbar">
+   <div class="d-flex align-items-center gap-3"><button class="btn btn-light mobile-toggle" onclick="toggleSidebar()"><i class="bi bi-list fs-5"></i></button><div><h4 class="fw-bold mb-0" id="pageTitle">Dashboard</h4><div class="muted">Ringkasan pengelolaan pinjaman</div></div></div>
+   <div class="text-end"><div class="fw-semibold" id="userLabel">Pengguna</div><span class="badge-soft" id="roleLabel">Administrator</span></div>
+  </div>
+  <section id="page-dashboard" class="section active">
+   <div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3"><div class="cardx stat"><div><div class="muted">Total Anggota</div><h3 id="sMembers">0</h3></div><div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-people"></i></div></div></div>
+    <div class="col-6 col-xl-3"><div class="cardx stat"><div><div class="muted">Total Peminjam</div><h3 id="sBorrowers">0</h3></div><div class="stat-icon bg-success-subtle text-success"><i class="bi bi-person-check"></i></div></div></div>
+    <div class="col-6 col-xl-3"><div class="cardx stat"><div><div class="muted">Total Pinjaman</div><h3 id="sTotal">Rp0</h3></div><div class="stat-icon bg-warning-subtle text-warning"><i class="bi bi-cash-stack"></i></div></div></div>
+    <div class="col-6 col-xl-3"><div class="cardx stat"><div><div class="muted">Sisa Pinjaman</div><h3 id="sBalance">Rp0</h3></div><div class="stat-icon bg-danger-subtle text-danger"><i class="bi bi-hourglass-split"></i></div></div></div>
+   </div>
+   <div class="row g-3"><div class="col-lg-8"><div class="cardx"><h6 class="fw-bold">Ringkasan Pinjaman</h6><canvas id="loanChart" height="115"></canvas></div></div><div class="col-lg-4"><div class="cardx"><h6 class="fw-bold">Status Pembayaran</h6><canvas id="statusChart" height="190"></canvas></div></div></div>
+   <div class="row g-3 mt-1 admin-only"><div class="col-md-6"><div class="cardx"><div class="muted">Pemasukan tercatat</div><h4 class="fw-bold text-success mt-2" id="sIncome">Rp0</h4></div></div><div class="col-md-6"><div class="cardx"><div class="muted">Pengeluaran tercatat</div><h4 class="fw-bold text-danger mt-2" id="sExpense">Rp0</h4></div></div></div>
+  </section>
+  <section id="page-members" class="section">
+   <div class="cardx"><div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><input id="memberSearch" class="form-control" style="max-width:280px" placeholder="Cari anggota..." oninput="renderMembers()"><button class="btn btn-primary admin-only" onclick="openMember()"><i class="bi bi-plus-lg"></i> Tambah Anggota</button></div><div class="table-responsive"><table class="table"><thead><tr><th>ID</th><th>Nama</th><th>Alamat</th><th>No. HP</th><th>Aksi</th></tr></thead><tbody id="memberRows"></tbody></table></div></div>
+  </section>
+  <section id="page-loans" class="section">
+   <div class="cardx"><div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><input id="loanSearch" class="form-control" style="max-width:280px" placeholder="Cari peminjam..." oninput="renderLoans()"><button class="btn btn-primary admin-only" onclick="openLoan()"><i class="bi bi-plus-lg"></i> Tambah Pinjaman</button></div><div class="table-responsive"><table class="table"><thead><tr><th>Anggota</th><th>Pokok</th><th>Bunga</th><th>Tenor</th><th>Total</th><th>Terbayar</th><th>Sisa</th><th>Aksi</th></tr></thead><tbody id="loanRows"></tbody></table></div></div>
+  </section>
+  <section id="page-payments" class="section">
+   <div class="cardx"><div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><h6 class="fw-bold">Riwayat Angsuran</h6><button class="btn btn-primary admin-only" onclick="openPayment()"><i class="bi bi-plus-lg"></i> Catat Angsuran</button></div><div class="table-responsive"><table class="table"><thead><tr><th>Tanggal</th><th>Anggota</th><th>Angsuran</th><th>Jatuh Tempo</th><th>Dibayar</th><th>Metode</th></tr></thead><tbody id="paymentRows"></tbody></table></div></div>
+  </section>
+  <section id="page-reports" class="section">
+   <div class="cardx"><div class="d-flex justify-content-between align-items-center mb-3"><h6 class="fw-bold mb-0">Laporan Pinjaman & Angsuran</h6><button class="btn btn-outline-primary btn-sm" onclick="window.print()"><i class="bi bi-printer"></i> Cetak</button></div><div class="table-responsive"><table class="table"><thead><tr><th>Anggota</th><th>Pinjaman</th><th>Total Kewajiban</th><th>Terbayar</th><th>Sisa</th><th>Status</th></tr></thead><tbody id="reportRows"></tbody></table></div></div>
+  </section>
+  <section id="page-income" class="section"><div class="cardx"><div class="d-flex justify-content-between mb-3"><h6 class="fw-bold">Pemasukan</h6><button class="btn btn-primary" onclick="openFinance('Pemasukan')">Tambah</button></div><div class="table-responsive"><table class="table"><thead><tr><th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th>Nominal</th><th>Aksi</th></tr></thead><tbody id="incomeRows"></tbody></table></div></div></section>
+  <section id="page-expense" class="section"><div class="cardx"><div class="d-flex justify-content-between mb-3"><h6 class="fw-bold">Pengeluaran</h6><button class="btn btn-primary" onclick="openFinance('Pengeluaran')">Tambah</button></div><div class="table-responsive"><table class="table"><thead><tr><th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th>Nominal</th><th>Aksi</th></tr></thead><tbody id="expenseRows"></tbody></table></div></div></section>
+  <section id="page-password" class="section"><div class="cardx" style="max-width:500px"><h6 class="fw-bold mb-3">Ganti Password</h6><form onsubmit="changePassword(event)"><label class="form-label">Password lama</label><input id="oldPassword" type="password" class="form-control mb-3" required><label class="form-label">Password baru (minimal 8 karakter)</label><input id="newPassword" type="password" class="form-control mb-3" minlength="8" required><button class="btn btn-primary">Simpan Password</button></form></div></section>
+ </main>
+</div>
+
+<div class="modal fade" id="memberModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form onsubmit="saveMember(event)"><div class="modal-header"><h5 class="modal-title">Data Anggota</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input id="mId" type="hidden"><label class="form-label">Nama lengkap</label><input id="mName" class="form-control mb-2" required><label class="form-label">Alamat</label><textarea id="mAddress" class="form-control mb-2"></textarea><label class="form-label">Nomor HP</label><input id="mPhone" class="form-control mb-2"><label class="form-label">Password anggota</label><input id="mPassword" type="text" class="form-control" placeholder="Kosongkan saat edit; default ID saat tambah"><div class="form-text">ID anggota dibuat otomatis. Password awal anggota adalah ID anggota jika tidak diisi.</div></div><div class="modal-footer"><button class="btn btn-light" type="button" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div></form></div></div></div>
+<div class="modal fade" id="loanModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form onsubmit="saveLoan(event)"><div class="modal-header"><h5 class="modal-title">Data Pinjaman</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input id="lId" type="hidden"><label class="form-label">Anggota</label><select id="lMember" class="form-select mb-2" required></select><label class="form-label">Nominal pokok pinjaman</label><input id="lPrincipal" type="number" min="1" class="form-control mb-2" required><div class="row"><div class="col-6"><label class="form-label">Bunga flat / bulan (%)</label><input id="lRate" type="number" min="0" step=".01" value="2" class="form-control mb-2" required></div><div class="col-6"><label class="form-label">Tenor (bulan)</label><select id="lTenor" class="form-select mb-2"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option selected>10</option></select></div></div><label class="form-label">Tanggal pinjaman</label><input id="lDate" type="date" class="form-control mb-2"><label class="form-label">Keterangan</label><textarea id="lNotes" class="form-control"></textarea><div id="loanCalc" class="alert alert-primary mt-3 mb-0 small">Isi nominal untuk melihat simulasi perhitungan.</div></div><div class="modal-footer"><button class="btn btn-light" type="button" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan Pinjaman</button></div></form></div></div></div>
+<div class="modal fade" id="paymentModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form onsubmit="savePayment(event)"><div class="modal-header"><h5 class="modal-title">Catat Angsuran</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><label class="form-label">Pinjaman anggota</label><select id="pLoan" class="form-select mb-2" required onchange="paymentOptions()"></select><label class="form-label">Angsuran ke</label><select id="pNo" class="form-select mb-2" required></select><label class="form-label">Nominal pembayaran aktual</label><input id="pAmount" type="number" min="1" class="form-control mb-2" required><div class="form-text mb-2">Nominal otomatis mengikuti angsuran bulanan; dapat disesuaikan oleh admin.</div><label class="form-label">Tanggal bayar</label><input id="pDate" type="date" class="form-control mb-2" required><label class="form-label">Metode</label><select id="pMethod" class="form-select mb-2"><option>Tunai</option><option>Transfer</option><option>Lainnya</option></select><label class="form-label">Catatan</label><input id="pNotes" class="form-control"></div><div class="modal-footer"><button class="btn btn-light" type="button" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan Angsuran</button></div></form></div></div></div>
+<div class="modal fade" id="financeModal"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><form onsubmit="saveFinance(event)"><div class="modal-header"><h5 class="modal-title" id="fTitle">Transaksi Keuangan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input id="fId" type="hidden"><input id="fType" type="hidden"><label class="form-label">Tanggal</label><input id="fDate" type="date" class="form-control mb-2" required><label class="form-label">Kategori</label><input id="fCategory" class="form-control mb-2" required><label class="form-label">Nominal</label><input id="fAmount" type="number" min="1" class="form-control mb-2" required><label class="form-label">Keterangan</label><textarea id="fDesc" class="form-control"></textarea></div><div class="modal-footer"><button class="btn btn-light" type="button" data-bs-dismiss="modal">Batal</button><button class="btn btn-primary">Simpan</button></div></form></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const state={token:'',user:null,members:[],loans:[],payments:[],finance:[],charts:{}};
+const $=id=>document.getElementById(id);
+const rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n||0));
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10);};
+async function api(action,data={}){const r=await fetch('/api/gas',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,data:{...data,token:state.token}})});const j=await r.json();if(!j.ok)throw new Error(j.error||'Terjadi kesalahan');return j.data;}
+function toast(icon,title){Swal.fire({toast:true,position:'top-end',icon,title,showConfirmButton:false,timer:2600});}
+function togglePass(){const p=$('password');p.type=p.type==='password'?'text':'password';}
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('loginBtn').disabled=true;try{const d=await api('login',{username:$('username').value,password:$('password').value});state.token=d.token;state.user=d.user;await enterApp();}catch(err){Swal.fire('Login gagal',err.message,'error');}finally{$('loginBtn').disabled=false;}});
+async function enterApp(){ $('loginScreen').style.display='none';$('app').style.display='block';$('userLabel').textContent=state.user.username;$('roleLabel').textContent=state.user.role==='admin'?'Administrator':'Anggota';document.querySelectorAll('.admin-only').forEach(x=>x.style.display=state.user.role==='admin'?'':'none');await refreshAll(); }
+async function refreshAll(){try{const [m,l,p,r,d]=await Promise.all([api('members.list'),api('loans.list'),api('payments.list'),api('reports'),api('dashboard')]);state.members=m;state.loans=l;state.payments=p;renderMembers();renderLoans();renderPayments();renderReports(r);renderDashboard(d);if(state.user.role==='admin'){state.finance=await api('finance.list');renderFinance();}}catch(e){Swal.fire('Tidak dapat memuat data',e.message,'error');}}
+function go(page){document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));$('page-'+page).classList.add('active');document.querySelectorAll('.nav-link[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page));$('pageTitle').textContent=({dashboard:'Dashboard',members:'Data Anggota',loans:'Data Peminjam',payments:'Data Angsuran',reports:'Laporan',income:'Pemasukan',expense:'Pengeluaran',password:'Ganti Password'})[page];$('sidebar').classList.remove('open');}
+document.querySelectorAll('.nav-link[data-page]').forEach(x=>x.addEventListener('click',()=>go(x.dataset.page)));
+function toggleSidebar(){$('sidebar').classList.toggle('open');}
+function renderDashboard(d){$('sMembers').textContent=d.memberCount;$('sBorrowers').textContent=d.borrowerCount;$('sTotal').textContent=rupiah(d.totalDue);$('sBalance').textContent=rupiah(d.balance);$('sIncome').textContent=rupiah(d.income);$('sExpense').textContent=rupiah(d.expense);
+ const paid=d.paid,bal=d.balance;
+ if(state.charts.loan)state.charts.loan.destroy();state.charts.loan=new Chart($('loanChart'),{type:'bar',data:{labels:['Pokok','Terbayar','Sisa'],datasets:[{label:'Rupiah',data:[d.principal,paid,bal],backgroundColor:['#4263eb','#22b573','#ff9f43'],borderRadius:8}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>rupiah(v)}}}}});
+ if(state.charts.status)state.charts.status.destroy();state.charts.status=new Chart($('statusChart'),{type:'doughnut',data:{labels:['Terbayar','Sisa'],datasets:[{data:[paid,bal],backgroundColor:['#22b573','#ff9f43'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom'}}}});
+}
+function renderMembers(){const q=($('memberSearch')?.value||'').toLowerCase();$('memberRows').innerHTML=state.members.filter(m=>(m.name+' '+m.memberId).toLowerCase().includes(q)).map(m=>`<tr><td>${esc(m.memberId)}</td><td class="fw-semibold">${esc(m.name)}</td><td>${esc(m.address||'-')}</td><td>${esc(m.phone||'-')}</td><td>${state.user.role==='admin'?`<button class="btn btn-sm btn-light" onclick="editMember('${m.memberId}')"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="removeMember('${m.memberId}')"><i class="bi bi-trash"></i></button>`:'-'}</td></tr>`).join('')||emptyRow(5);}
+function renderLoans(){const q=($('loanSearch')?.value||'').toLowerCase();$('loanRows').innerHTML=state.loans.filter(l=>memberName(l.memberId).toLowerCase().includes(q)).map(l=>`<tr><td class="fw-semibold">${esc(memberName(l.memberId))}</td><td>${rupiah(l.principal)}</td><td>${l.rate}%</td><td>${l.tenor} bln</td><td>${rupiah(l.totalDue)}</td><td class="text-success">${rupiah(l.paid)}</td><td class="text-danger">${rupiah(l.balance)}</td><td>${state.user.role==='admin'?`<button class="btn btn-sm btn-light" onclick="editLoan('${l.loanId}')"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="removeLoan('${l.loanId}')"><i class="bi bi-trash"></i></button>`:'-'}</td></tr>`).join('')||emptyRow(8);}
+function renderPayments(){$('paymentRows').innerHTML=state.payments.slice().sort((a,b)=>b.paidDate.localeCompare(a.paidDate)).map(p=>`<tr><td>${esc(p.paidDate)}</td><td>${esc(memberName(p.memberId))}</td><td>Ke-${p.installmentNo}</td><td>${rupiah(p.dueAmount)}</td><td class="text-success fw-semibold">${rupiah(p.paidAmount)}</td><td>${esc(p.method)}</td></tr>`).join('')||emptyRow(6);}
+function renderReports(r){$('reportRows').innerHTML=r.loans.map(l=>`<tr><td>${esc(l.memberName)}</td><td>${rupiah(l.principal)}</td><td>${rupiah(l.totalDue)}</td><td>${rupiah(l.paid)}</td><td>${rupiah(l.balance)}</td><td><span class="badge ${l.balance===0?'text-bg-success':'text-bg-warning'}">${l.status}</span></td></tr>`).join('')||emptyRow(6);}
+function renderFinance(){['Pemasukan','Pengeluaran'].forEach(type=>{const id=type==='Pemasukan'?'incomeRows':'expenseRows';$(id).innerHTML=state.finance.filter(x=>x.type===type).map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.category)}</td><td>${esc(x.description)}</td><td>${rupiah(x.amount)}</td><td><button class="btn btn-sm btn-light" onclick="editFinance('${x.financeId}')"><i class="bi bi-pencil"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="removeFinance('${x.financeId}')"><i class="bi bi-trash"></i></button></td></tr>`).join('')||emptyRow(5);});}
+function emptyRow(n){return `<tr><td colspan="${n}" class="empty">Belum ada data</td></tr>`;}
+function memberName(id){return state.members.find(m=>m.memberId===id)?.name||id;}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+const modal=id=>bootstrap.Modal.getOrCreateInstance($(id));
+function openMember(){ $('mId').value='';$('mName').value='';$('mAddress').value='';$('mPhone').value='';$('mPassword').value='';modal('memberModal').show();}
+function editMember(id){const m=state.members.find(x=>x.memberId===id);$('mId').value=m.memberId;$('mName').value=m.name;$('mAddress').value=m.address;$('mPhone').value=m.phone;$('mPassword').value='';modal('memberModal').show();}
+async function saveMember(e){e.preventDefault();try{const d=await api('members.save',{memberId:$('mId').value,name:$('mName').value,address:$('mAddress').value,phone:$('mPhone').value,password:$('mPassword').value});modal('memberModal').hide();await refreshAll();Swal.fire('Berhasil','Data anggota disimpan. ID: '+d.memberId+(d.initialPassword?' | Password awal: '+d.initialPassword:''),'success');}catch(x){toast('error',x.message);}}
+async function removeMember(id){const c=await Swal.fire({title:'Hapus anggota?',icon:'warning',showCancelButton:true,confirmButtonText:'Hapus'});if(!c.isConfirmed)return;try{await api('members.delete',{memberId:id});await refreshAll();toast('success','Anggota dihapus');}catch(e){toast('error',e.message);}}
+function openLoan(){if(!state.members.length)return toast('warning','Tambahkan anggota terlebih dahulu');$('lId').value='';$('lMember').innerHTML=state.members.map(m=>`<option value="${esc(m.memberId)}">${esc(m.name)} (${esc(m.memberId)})</option>`).join('');$('lPrincipal').value='';$('lRate').value='2';$('lTenor').value='10';$('lDate').value=today();$('lNotes').value='';calcLoan();modal('loanModal').show();}
+function editLoan(id){const l=state.loans.find(x=>x.loanId===id);$('lId').value=l.loanId;$('lMember').innerHTML=state.members.map(m=>`<option value="${esc(m.memberId)}">${esc(m.name)}</option>`).join('');$('lMember').value=l.memberId;$('lPrincipal').value=l.principal;$('lRate').value=l.rate;$('lTenor').value=l.tenor;$('lDate').value=l.loanDate;$('lNotes').value=l.notes;calcLoan();modal('loanModal').show();}
+['lPrincipal','lRate','lTenor'].forEach(id=>$(id).addEventListener('input',calcLoan));
+function calcLoan(){const p=Number($('lPrincipal').value||0),r=Number($('lRate').value||0),t=Number($('lTenor').value||10),i=p*r/100*t,total=p+i;$('loanCalc').innerHTML=`Bunga: <b>${rupiah(i)}</b> • Total kewajiban: <b>${rupiah(total)}</b><br>Angsuran per bulan: <b>${rupiah(total/t)}</b>`;}
+async function saveLoan(e){e.preventDefault();try{await api('loans.save',{loanId:$('lId').value,memberId:$('lMember').value,principal:$('lPrincipal').value,rate:$('lRate').value,tenor:$('lTenor').value,loanDate:$('lDate').value,notes:$('lNotes').value});modal('loanModal').hide();await refreshAll();toast('success','Data pinjaman disimpan');}catch(x){toast('error',x.message);}}
+async function removeLoan(id){const c=await Swal.fire({title:'Hapus pinjaman?',text:'Pinjaman yang sudah memiliki angsuran tidak dapat dihapus.',icon:'warning',showCancelButton:true,confirmButtonText:'Hapus'});if(!c.isConfirmed)return;try{await api('loans.delete',{loanId:id});await refreshAll();toast('success','Pinjaman dihapus');}catch(e){toast('error',e.message);}}
+function openPayment(){const open=state.loans.filter(l=>l.balance>0);if(!open.length)return toast('info','Tidak ada pinjaman berjalan');$('pLoan').innerHTML=open.map(l=>`<option value="${l.loanId}">${esc(memberName(l.memberId))} — sisa ${rupiah(l.balance)}</option>`).join('');$('pDate').value=today();paymentOptions();modal('paymentModal').show();}
+function paymentOptions(){const l=state.loans.find(x=>x.loanId===$('pLoan').value);if(!l)return;const paid=new Set(state.payments.filter(p=>p.loanId===l.loanId).map(p=>p.installmentNo));const options=[];for(let i=1;i<=l.tenor;i++)if(!paid.has(i))options.push(i);$('pNo').innerHTML=options.map(n=>`<option value="${n}">Angsuran ke-${n}</option>`).join('');$('pAmount').value=l.monthlyDue;}
+async function savePayment(e){e.preventDefault();try{await api('payments.save',{loanId:$('pLoan').value,installmentNo:$('pNo').value,paidAmount:$('pAmount').value,paidDate:$('pDate').value,method:$('pMethod').value,notes:$('pNotes').value});modal('paymentModal').hide();await refreshAll();toast('success','Pembayaran angsuran tersimpan');}catch(x){toast('error',x.message);}}
+function openFinance(type){$('fId').value='';$('fType').value=type;$('fTitle').textContent=type;$('fDate').value=today();$('fCategory').value='';$('fAmount').value='';$('fDesc').value='';modal('financeModal').show();}
+function editFinance(id){const x=state.finance.find(a=>a.financeId===id);$('fId').value=id;$('fType').value=x.type;$('fTitle').textContent=x.type;$('fDate').value=x.date;$('fCategory').value=x.category;$('fAmount').value=x.amount;$('fDesc').value=x.description;modal('financeModal').show();}
+async function saveFinance(e){e.preventDefault();try{await api('finance.save',{financeId:$('fId').value,type:$('fType').value,date:$('fDate').value,category:$('fCategory').value,amount:$('fAmount').value,description:$('fDesc').value});modal('financeModal').hide();await refreshAll();toast('success','Transaksi disimpan');}catch(x){toast('error',x.message);}}
+async function removeFinance(id){const c=await Swal.fire({title:'Hapus transaksi?',icon:'warning',showCancelButton:true,confirmButtonText:'Hapus'});if(!c.isConfirmed)return;try{await api('finance.delete',{financeId:id});await refreshAll();toast('success','Transaksi dihapus');}catch(e){toast('error',e.message);}}
+async function changePassword(e){e.preventDefault();try{await api('password.change',{oldPassword:$('oldPassword').value,newPassword:$('newPassword').value});$('oldPassword').value='';$('newPassword').value='';toast('success','Password berhasil diganti');}catch(x){toast('error',x.message);}}
+async function logout(){try{await api('logout');}catch(e){}state.token='';state.user=null;$('app').style.display='none';$('loginScreen').style.display='grid';$('password').value='';}
+</script>
+</body></html>
